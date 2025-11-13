@@ -1,0 +1,27 @@
+name: Deploy via SSH (Ubuntu)
+
+on:
+  push:
+    branches:
+      - main  # ou a branch que você quiser
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout código
+        uses: actions/checkout@v4
+
+      - name: Configurar SSH e executar comandos
+        uses: appleboy/ssh-action@v1.2.1
+        with:
+          host: ${{ secrets.SERVER_HOST }}        # IP ou domínio do seu servidor Ubuntu
+          username: ${{ secrets.SERVER_USER }}    # Usuário SSH (ex: ubuntu)
+          key: ${{ secrets.SERVER_SSH_KEY }}      # Chave privada SSH (colocada nos Secrets)
+          port: 22                                # Porta SSH
+          script: |
+            echo "✅ Conectado ao servidor Ubuntu!"
+            cd /home/ubuntu/meu_projeto
+            git pull origin main
+            sudo systemctl restart meu_servico
