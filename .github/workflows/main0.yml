@@ -1,0 +1,30 @@
+name: Generate SSH Key
+
+on:
+  workflow_dispatch:
+
+jobs:
+  generate_ssh_key:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Generate SSH Key (RSA 4096)
+      run: |
+        mkdir -p ssh_keys
+        ssh-keygen -t rsa -b 4096 -f ssh_keys/id_rsa -N ""
+        echo "===== PUBLIC KEY ====="
+        cat ssh_keys/id_rsa.pub
+        echo "======================="
+
+    - name: Upload private key as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: id_rsa
+        path: ssh_keys/id_rsa
+
+    - name: Upload public key as artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: id_rsa.pub
+        path: ssh_keys/id_rsa.pub
+        
