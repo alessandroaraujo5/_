@@ -30,7 +30,7 @@ on:
       KERNELSU:
         description: "Clone URL of your kernelsu"
         required: true
-        default: "curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main"
+        default: curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main
 jobs:
   Build_Kernel:
     runs-on: ubuntu-latest
