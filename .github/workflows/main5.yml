@@ -28,7 +28,7 @@ on:
         required: true
         default: 'https://github.com/aosp-realm/AnyKernel3.git -b master'
       KERNELSU:
-        description :"Clone URL of your kernelsu"
+        description: "Clone URL of your kernelsu"
         required: true
         default: "curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s main"
 jobs:
