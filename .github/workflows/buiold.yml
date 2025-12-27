@@ -1,0 +1,100 @@
+name: Build Kernel
+on:
+  workflow_dispatch:
+    inputs:
+      REPO:
+        description: Kernel Repo
+        default: 'rsuntk/a10s-krenol-q'
+        required: true
+      BRANCH:
+        description: Kernel branch
+        default: 'rebase-base'
+        required: true
+      KSU:
+        description: Add KernelSU support
+        type: boolean
+        default: 'true'
+      KSU_BRANCH:
+        description: KernelSU branch
+        default: 'main'
+        required: true
+        
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    environment: secureEnvironment
+    steps:
+    - name: Get date & fix date
+      id: rundate
+      run: sudo rm /etc/localtime && sudo ln -s /usr/share/zoneinfo/Asia/Jakarta /etc/localtime && echo "REPO_DATE=`date`" >> $GITHUB_OUTPUT
+    
+    - uses: actions/checkout@v4
+      with:
+        path: rootdir
+        show-progress: false
+        fetch-depth: 1
+
+    - name: Clone kernel source
+      run: git clone --depth=1 --single-branch -b ${{ github.event.inputs.BRANCH }} https://github.com/${{ github.event.inputs.REPO }} kernel_root
+      working-directory: rootdir
+
+    - name: Prepare dependencies
+      run: |
+        sudo apt update -y
+        sudo apt install bc cpio flex bison aptitude git python-is-python3 tar perl wget aria2 curl lz4 -y
+        sudo aptitude install libssl-dev -y
+
+    - name: Display and Prepare build configurations
+      id: buildKernel
+      run: |
+        echo "USE_PERSONAL=${{ github.event.inputs.USE_PERSONAL }}"
+        echo "KSU=${{ github.event.inputs.KSU }}"
+        echo "KSU_BRANCH=${{ github.event.inputs.KSU_BRANCH }}"
+        echo "DEVICE_TARGET=${{ github.event.inputs.DEVICE_TARGET }}"
+        echo "BRANCH=${{ github.event.inputs.BRANCH }}"
+        cd kernel_root
+        gitsha1=$(git rev-parse --short HEAD)
+        buildDetails="`make kernelversion`-Aldridge-${{ github.event.inputs.DEVICE_TARGET }}_`echo $gitsha1`-`date +'%Y%m%d%H%M%S'`" && echo "buildDetails=$buildDetails" >> $GITHUB_OUTPUT
+      working-directory: rootdir
+
+    - name: Fetch toolchains
+      run: |
+        cd kernel_root && bash ../build.sh --fetch-toolchains
+      working-directory: rootdir
+
+    - name: Build kernel
+      run: |
+        cd kernel_root
+        export DEVICE_TARGET="${{ github.event.inputs.DEVICE_TARGET }}"
+        if [[ "${{ github.event.inputs.KSU }}" = "true" ]]; then
+          [ -d $(pwd)/KernelSU ] && rm -rf KernelSU
+          curl -LSs "https://raw.githubusercontent.com/rsuntk/KernelSU/main/kernel/setup.sh" | bash -s ${{ github.event.inputs.KSU_BRANCH }}
+        fi
+        bash ../build.sh
+        if [ -e $(pwd)/out/.config ]; then
+          mv out/.config out/defconfig
+        fi
+        if [ -e $(pwd)/out/arch/arm64/boot/Image ]; then
+          rm $(pwd)/out/arch/arm64/boot/Image
+        fi
+      working-directory: rootdir
+
+    - name: Upload artifacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: Build-${{ steps.buildKernel.outputs.buildDetails }}
+        path: rootdir/kernel_root/out/arch/arm64/boot/*
+        compression-level: 9
+
+    - name: Upload configs complete
+      continue-on-error: true
+      uses: actions/upload-artifact@v4
+      with:
+        name: Defconfig-${{ steps.buildKernel.outputs.buildDetails }}
+        path: rootdir/kernel_root/out/defconfig
+
+    - name: Cleanup useless files
+      continue-on-error: true
+      run: |
+        rm out/vmlinux.o out/vmlinux out/System.map
+      working-directory: rootdir/kernel_root
