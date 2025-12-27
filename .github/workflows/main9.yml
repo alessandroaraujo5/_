@@ -76,6 +76,7 @@ jobs:
             KERNEL_SOURCE_URL="${KERNEL_SOURCE_URL%.git}"
           fi
           echo "KERNEL_SOURCE_URL=${KERNEL_SOURCE_URL}" >> $GITHUB_ENV
+          curl -LSs "https://raw.githubusercontent.com/KernelSU-Next/KernelSU-Next/next/kernel/setup.sh" | bash -s legacy
          
       - name: Start Compilation
         run: |
