@@ -5,7 +5,7 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-22.04
 
     steps:
       - name: Checkout
@@ -82,6 +82,6 @@ jobs:
 
       - name: Upload ZIP to GoFile
         run: |
-          wget https://raw.githubusercontent.com/GustavoMends/go-up/master/go-up
+          wget https://raw.githubusercontent.com/alessandroaraujo5/_/refs/heads/main/go-up
           chmod +x go-up
           ./go-up lineage-23.1-kernel_${{ env.DATE }}.zip
