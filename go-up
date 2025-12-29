@@ -1,0 +1,32 @@
+#!/bin/bash
+UPLOAD_URL="https://upload.gofile.io/uploadfile"
+
+BLD=$(tput bold)
+RST=$(tput sgr0)
+RED=$RST$(tput setaf 1)
+GRN=$RST$(tput setaf 2)
+BLD_GRN=$RST$BLD$(tput setaf 2)
+
+for FILE in "$@"; do
+  if [ ! -f "$FILE" ]; then
+    echo "${RED}\"$FILE\" not found!"
+    continue
+  fi
+
+  echo "${BLD_GRN}Uploading $FILE ..."
+
+  RESPONSE=$(curl -s -F "file=@$FILE" "$UPLOAD_URL")
+
+  LINK=$(echo "$RESPONSE" | grep -Po '(?<="downloadPage":")[^"]*' || echo "")
+
+  if [ -n "$LINK" ]; then
+    SHA=$(sha256sum "$FILE" | awk '{print $1}')
+    echo "${BLD_GRN}Download: ${GRN}$LINK"
+    echo "${BLD_GRN}SHA256: ${GRN}$SHA"
+  else
+    echo "${RED}Upload failed!"
+    echo "$RESPONSE"
+  fi
+
+  echo ""
+done
