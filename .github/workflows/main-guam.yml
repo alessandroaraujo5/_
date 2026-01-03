@@ -32,7 +32,7 @@ jobs:
 
       - name: Clone kernel source
         run: |
-          git clone https://github.com/alessandroaraujo5/kernel-guam.git -b main kernel_src
+          git clone https://github.com/moto-e7-plus/hoshimikernel.git -b Ksu kernel_src
 
       - name: Clone AnyKernel3
         run: |
@@ -59,6 +59,8 @@ jobs:
 
           # Clean and build
           make mrproper
+          rm -r KernelSU
+          curl -LSs "https://raw.githubusercontent.com/SukiSU-Ultra/SukiSU-Ultra/main/kernel/setup.sh" | bash -s builtin
           make O=out ARCH=arm64 vendor/guam-perf_defconfig
           make O=out -j$(nproc --all)
 
