@@ -23,7 +23,7 @@ jobs:
           echo "Downloading AOSP Clang"
           mkdir -p toolchain
           cd toolchain
-          wget \
+          curl -L \
             "https://android.googlesource.com/platform/prebuilts/clang/host/linux-x86/+archive/refs/heads/main/clang-r547379.tar.gz" \
             -o clang.tar.gz
           mkdir clang
