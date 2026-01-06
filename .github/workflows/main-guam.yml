@@ -32,7 +32,7 @@ jobs:
 
       - name: Clone kernel source
         run: |
-          git clone https://github.com/moto-e7-plus/android_kernel_motorola_sm6225.git -b main kernel_src
+          git clone https://github.com/moto-e7-plus/kernel_4.19.331.git -b main kernel_src
 
       - name: Clone AnyKernel3
         run: |
@@ -41,12 +41,6 @@ jobs:
       - name: Build Kernel
         run: |
           cd kernel_src
-          # Merge kernel configs
-          ./scripts/kconfig/merge_config.sh -m \
-            arch/arm64/configs/vendor/bengal-perf_defconfig \
-            arch/arm64/configs/vendor/ext_config/moto-bengal.config \
-            arch/arm64/configs/vendor/ext_config/guam-default.config
-          cp .config arch/arm64/configs/vendor/guam-perf_defconfig
 
           # Set environment for compilation
           export PATH="$PWD/../toolchain/clang/bin:$PATH"
@@ -59,7 +53,7 @@ jobs:
 
           # Clean and build
           make mrproper
-          make O=out ARCH=arm64 vendor/guam-perf_defconfig
+          make O=out ARCH=arm64 guam_defconfig
           make O=out -j$(nproc --all)
 
       - name: Setup AnyKernel
